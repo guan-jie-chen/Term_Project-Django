@@ -35,4 +35,12 @@ urlpatterns = [
     # news recommendation
     path('news_rcmd/', include('app_news_rcmd.urls')),
 
+    # Sentiment analysis
+    path('sentiment/', include('app_sentiment.urls')),
+
+    # news classification
+    path('news_cate/', include('app_news_classify.urls')),
+
+
+
 ]

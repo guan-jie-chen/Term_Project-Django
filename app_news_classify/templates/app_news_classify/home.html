@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>輿情分析平台</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+
+</head>
+<body>
+
+<div class="container">
+
+    <div class="row">
+
+        {% include 'navbar.html' %}
+
+        <div class="col-lg-12">
+            <h1>文章分類</h1>
+            <p>使用深度學習進行文章分類</p>
+        </div>
+
+        <!--row .. col-lg-6 .. card -->
+        <div class="col-lg-6 mb-2">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="h6 text-uppercase mb-0">輸入一段文字，判讀文章的類別與機率</h3>
+                </div>
+                <div class="card-body">
+                    <div class="form-group">
+                        <label for="textarea_content">在這裡輸入文章文字...</label>
+                        <textarea class="form-control" id="textarea_content"
+                                                                        name="textarea_text" rows="6"></textarea>
+                    </div>
+                    <button type="button" class="btn btn-primary" id="btn_cnn">CNN模型</button>
+                </div>
+            </div>
+        </div><!-- column -->
+
+        <!-- show result -->
+        <div class="col-lg-6 mb-5">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="h6 text-uppercase mb-0">判讀結果顯示</h3>
+                </div>
+                <div class="card-body">
+                    <!-- show result -->
+                    <ul id="show_proba"></ul>
+                </div>
+            </div>
+        </div><!-- column -->
+
+    </div>
+</div>
+
+</body>
+</html>
+
+<!-- jQuery.js-->
+<script src="https://code.jquery.com/jquery-3.1.0.min.js"></script>
+<script>
+
+    // default text
+    const news = "現在國防部正在開記者會說陸軍制服又要改款之前改艾森豪夾克，希望年輕化吸引年輕人從軍可是一直走美式卡其風格，效果好像還好大家有沒有建議改哪國的風格才真帥炸，會吸引年輕人？"
+    $('#textarea_content').val(news);
+
+    var target_div = document.getElementById("show_proba");
+
+    //submit button event
+    $('#btn_cnn').on('click', function (e) {
+
+        call_ajax('btn_deep');
+
+    }); 
+
+    // function call_ajax()
+    var call_ajax = function (btn_source) {
+        console.log(btn_source);
+        var input_text = $('#textarea_content').val();
+        console.log(input_text);
+        target_div.innerHTML = '';
+        $.ajax({
+            type: "POST",
+            url: "api_get_news_cate/",
+            data: {
+                "input_text": input_text,
+                "btn_source": btn_source,
+            }, 
+            success: function (received) {
+
+                let data_cate = received['news_cate'];
+                
+                let data_senti = received['news_sentiment'];
+
+                $('#show_proba').append("<li>文章類別:" + data_cate.label + "</li>");
+                target_div.innerHTML += "<li>文章類別機率:" + data_cate["proba"] + "</li>";
+
+
+                target_div.innerHTML += "<li>正面情緒分數:" + data_senti["Positive"] + "</li>";
+                target_div.innerHTML += "<li>負面情緒分數:" + data_senti["Negative"] + "</li>";
+
+            } //function
+        }); //ajax
+
+    } // call_ajax function
+
+</script>

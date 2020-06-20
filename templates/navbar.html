@@ -18,26 +18,25 @@
 
             <ul class="navbar-nav mr-auto">
                 <li class="nav-item">
-                    <a class="nav-link" href="{% url 'app_top_keyword:chart_topWord' %}">熱門關鍵詞分析</a>
+                    <a class="nav-link" href="{% url 'app_top_keyword:chart_topWord' %}">PTT-熱門關鍵詞分析</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="{% url 'app_top_person:home_topPerson'%}">熱門人物排行分析</a>
+                    <a class="nav-link" href="{% url 'app_top_person:home_topPerson'%}">PTT-熱門人物排行分析</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="{% url 'namespace_top_ner:home' %}">NER熱門分析</a>
+                    <a class="nav-link" href="{% url 'namespace_top_ner:home' %}">PTT-NER熱門分析</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="{% url 'namespace_user_keyword:home' %}">你的關鍵詞熱門度分析</a>
+                    <a class="nav-link" href="{% url 'namespace_user_keyword:home' %}">關鍵詞熱門度分析</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="{% url 'namespace_app_news_rcmd:home' %}">PTT瀏覽與文章推薦</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="#">全文檢索與關聯新聞分析</a>
+                    <a class="nav-link" href="{% url 'namespace_app_news_classify:home' %}">文章類別分類-CNN model</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link"
-                       href="#">你的關鍵詞情緒分析</a>
+                    <a class="nav-link" href="{% url 'namespace_app_sentiment:home' %}">用詞情緒分類-CNN model</a>
                 </li>
             </ul>
 

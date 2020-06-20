@@ -42,6 +42,8 @@ INSTALLED_APPS = [
     'app_top_ner_analysis',
     'app_user_keyword',
     'app_news_rcmd',
+    'app_sentiment',
+    'app_news_classify',
 ]
 
 MIDDLEWARE = [

@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>PTT文章分析平台</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+</head>
+
+<body>
+    <div class="container">
+        <div class="row">
+            {% include 'navbar.html' %}
+
+            <div class="col-lg-12">
+                <h1>文字情緒判斷系統</h1>
+                <p>展示各種情緒分類模型的應用</p>
+            </div>
+
+            <!-- row card -->
+            <div class="col-lg-6 mb-2">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="h6 text-uppercase mb-0">輸入一段文字，判讀正負向情緒的機率</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-group">
+                            <label for="textarea_content">在這裡輸入一段帶有情緒的文字...</label><textarea class="form-control"
+                                id="textarea_content" name="textarea_text" rows="6">蘋果不好吃</textarea>
+                        </div>
+
+                        <button type="button" class="btn btn-primary" id="btn_deep">深度模型</button>
+                    </div>
+                </div>
+            </div><!-- column -->
+
+            <!-- Show sentiment score (probability) -->
+            <div class="col-lg-6 mb-2">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="h6 text-uppercase mb-0">全文判讀結果顯示</h3>
+                    </div>
+                    <div class="card-body">
+                        <!-- Show sentiment score (probability) -->
+                        <ul id="show_sentiment_prob"></ul>
+                    </div>
+                </div>
+            </div><!-- column -->
+
+        </div>
+    </div>
+
+</body>
+
+</html>
+
+<!-- Here are our javascript code -->
+<script>
+    // default text 
+    $('#textarea_content').val("大數據分析的這堂課太棒了");
+
+    //var target_div = document.getElementById("show_sentiment_prob");
+
+    //-- btn_deep on click event
+    $('#btn_deep').on('click', function (e) {
+
+        call_ajax('btn_deep');
+
+    });
+
+    $('#btn_baidu').on('click', function (e) {
+        //call_ajax('btn_baidu');
+    });
+
+    $('#btn_deep_sentence').on('click', function (e) {
+        //call_ajax('btn_deep_sentence');
+
+    });
+
+    //--ajax function for getting sentimental score
+    var call_ajax = function (btn_source) {
+        
+        var input_text = $('#textarea_content').val();
+        $.ajax({
+
+            type: "POST",
+
+            // call your own localhost function
+            url: "api_get_sentiment/",
+
+            // Another way to call API (your website must adapt CORS)
+            //url: "http://localhost:8000/sentiment/api_get_sentiment/",
+
+            // get sentiment score by calling the demonstration website API
+            //url: "http://163.18.22.32:8000/sentiment/api_get_sentiment/",
+
+            
+            //define the content type
+            //contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+            //contentType: 'text/plain', // text format
+
+            // another way to define the content type
+            //headers: {
+                //'content-Type' : 'application/x-www-form-urlencoded; charset=UTF-8', //default type
+                //'Content-Type': 'text/plain'
+                //'Content-Type': 'application/json' //there is no this type!
+            //},
+
+            // For the content type of "text/plain"
+            //data: JSON.stringify({
+            //    "input_text": input_text,
+            //}),
+            
+
+            // For the content type of "application/x-www-form-urlencoded" 
+            data: {
+                "input_text": input_text,
+            },
+
+            success: function (received) {
+                let item = received;
+                console.log(item);
+
+                $('#show_sentiment_prob').empty();
+
+                //show sentiment score:
+                $('#show_sentiment_prob').append("<li>負向機率:" + item.Negative + "</li>");
+                $('#show_sentiment_prob').append("<li>正向機率:" + item.Positive + "</li>");
+                //target_div.innerHTML += "<li>正向機率:" + item["Positive"] + "</li>";
+
+            } //function
+        }); //ajax
+
+    } //ajax function
+</script>

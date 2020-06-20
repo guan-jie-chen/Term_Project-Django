@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>PTT文章分析系統</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- bootstrap css -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <!-- jQuery js-->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <!-- bootstrap js-->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+</head>
+
+<body>
+    <div class="container">
+        <div class="row">
+            {% include 'navbar.html' %}
+            <div class="col-lg-12">
+                <h1>熱門人物產品等命名實體分析</h1>
+                <p>哪個人物產品等被報導最多次?</p>
+            </div>
+            <!-- query criteria col-lg-6  card -->
+            <div class="col-lg-6 mb-5">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="h6 text-uppercase mb-0">篩選條件(資料週期:資料截止時間的前4周)</h3>
+                    </div>
+                    <div class="card-body">
+                        <!-- NE names -->
+                        <div class="form-group row">
+                            <label class="col-sm-3 form-control-label">實體標記名稱</label>
+                            <div class="col-md-9 select mb-3">
+                                <label class="radio-inline"><input type="radio" value="8" name="nerradio" checked>人名</label>
+                                <label class="radio-inline"><input type="radio" value="9" name="nerradio">產品</label>
+                                <label class="radio-inline"><input type="radio" value="4" name="nerradio">法律條文</label>
+                                <label class="radio-inline"><input type="radio" value="0" name="nerradio">事件</label>
+                                <label class="radio-inline"><input type="radio" value="7" name="nerradio">組織</label>
+                                <label class="radio-inline"><input type="radio" value="10" name="nerradio">作品</label>
+                                <label class="radio-inline"><input type="radio" value="5" name="nerradio">地理區</label>
+                                <label class="radio-inline"><input type="radio" value="3" name="nerradio">語言</label>
+                                <small class="form-text text-muted ml-3">請選擇詞類型
+                                </small>
+                            </div>
+                        </div>
+                        <!--form group-->
+                        <!-- new category form group-->
+                        <div class="form-group row">
+                            <label class="col-sm-3 form-control-label">新聞類別</label>
+                            <div class="col-md-9 mb-3">
+                                <label class="radio-inline"><input type="radio" value="0" name="cateradio" checked>八卦</label>
+                                <label class="radio-inline"><input type="radio" value="1" name="cateradio">棒球</label>
+                                <label class="radio-inline"><input type="radio" value="2" name="cateradio">車子</label>
+                                <label class="radio-inline"><input type="radio" value="3" name="cateradio">手機通訊</label>
+                                <label class="radio-inline"><input type="radio" value="4" name="cateradio">軟工</label>
+                                <label class="radio-inline"><input type="radio" value="5" name="cateradio">NBA</label>
+                                <label class="radio-inline"><input type="radio" value="6" name="cateradio">PlayStation</label>
+                                <label class="radio-inline"><input type="radio" value="7" name="cateradio">LoL</label>
+                                <label class="radio-inline"><input type="radio" value="8" name="cateradio">Steam</label>
+                                <label class="radio-inline"><input type="radio" value="9" name="cateradio">NSwitch</label>
+                                <label class="radio-inline"><input type="radio" value="10" name="cateradio">全部</label>
+                                <small class="form-text text-muted ml-3">請選擇新聞類別
+                                </small>
+                            </div>
+                        </div>
+                        <!-- Select number of words -->
+                        <div class="form-group row">
+                            <label class="col-md-3 form-control-label">多少個熱門詞?</label>
+                            <div class="col-md-9">
+                                <input id="topk_keys" name="topk" value="30" class="form-control form-control-success">
+                                <small class="form-text text-muted ml-3">內定值為30
+                                </small>
+                            </div>
+                        </div>
+                        <!-- submit -->
+                        <div class="form-group row">
+                            <div class="col-md-9 ml-auto">
+                                <button type="button" id="btn_ok" class="btn btn-primary">查詢</button>
+                            </div>
+                        </div>
+                    </div>
+                    <!--card body -->
+                </div> <!-- card -->
+            </div> <!-- column -->
+            <!-- draw cloud chart -->
+            <div class="col-lg-6 mb-5">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="h6 text-uppercase mb-0">熱門關鍵字雲圖</h3>
+                    </div>
+                    <div class="card-body">
+                        <div id="cloud"></div>
+                    </div>
+                </div>
+            </div><!-- column -->
+            <!-- draw chart -->
+            <div class="col-lg-6 mb-5">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="h6 text-uppercase mb-0">熱門關鍵字繪圖</h3>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="mychart"></canvas>
+                    </div>
+                </div>
+            </div><!-- column -->
+            <!-- display top words  -->
+            <div class="col-lg-6 mb-5">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="h6 text-uppercase mb-0">熱門關鍵字</h3>
+                    </div>
+                    <div class="card-body">
+                        <ul id="topkeys"></ul>
+                    </div>
+                </div>
+            </div><!-- column -->
+        </div> <!-- row -->
+    </div> <!-- container -->
+</body>
+
+</html>
+<!-- chartjs js-->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.3/Chart.min.js"></script>
+<!-- cloud chart ====
+Here is the cloud chart script.
+reference:http://bl.ocks.org/joews/9697914
+reference:https://jsfiddle.net/x827g61m/
+reference:https://www.d3-graph-gallery.com/wordcloud
+src="https://rawgit.com/jasondavies/d3-cloud/master/build/d3.layout.cloud.js">
+-->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.4.11/d3.min.js"></script>
+<script src="https://cdn.rawgit.com/jasondavies/d3-cloud/v1.2.1/build/d3.layout.cloud.js"></script>
+<!-- Here are your codes -->
+<script>
+// Show the page with default setting when page is initialized.
+call_ajax();
+
+//** submit event
+$('#btn_ok').on('click', function() {
+    call_ajax();
+}); //event function
+
+$("input[name='cateradio']").on('change', function() {
+    call_ajax();
+}); //event function
+
+$("input[name='nerradio']").on('change', function() {
+    call_ajax();
+}); //event function
+
+function call_ajax() {
+    //var call_ajax = function() {
+    // get user's input
+    const ner_value = $("input[name='nerradio']:checked").val();
+    console.log(ner_value);
+
+    const cate = $("input[name='cateradio']:checked").val();
+
+    var topk = $('#topk_keys').val();
+    console.log(topk);
+
+    // send and get data
+    $.ajax({
+        type: "POST",
+        url: "api_get_cate_topkey/",
+        data: {
+            "news_category": cate,
+            "topk": topk,
+            "ner_value": ner_value,
+        },
+        success: function(received) {
+
+
+            // clear previous top words
+            $('#topkeys').empty();
+            // clear previous cloud chart
+            $('#cloud').empty();
+
+
+            //clear previous bar chart
+            if (typeof(chart1) != "undefined") {
+                chart1.destroy();
+            }
+
+
+            console.log(received.data);
+            if (received.data.length == 0) {
+                $('#cloud').append("<h4>No Data!</h4>");
+                $('#topkeys').append("<h4>No Data!</h4>");
+                return
+            }
+
+            const data_barchart = received.data.data_barchart;
+            showChart(data_barchart);
+
+            const wf_pairs = received.data.wf_pairs;
+            show_top_keys(wf_pairs);
+
+            topWordToDraw = received.data.data_cloud;
+            drawCloud(topWordToDraw, '#cloud');
+
+        } //ajax function
+    }); //ajax
+} //call_ajax
+
+
+//** cloud chart
+function drawCloud(topWordToDraw, element_id) {
+    // You should set a proper box size to show cloud chart
+    const width = 500;
+    const height = 500;
+
+    // First define your cloud data, using `text` and `size` properties:
+    // Next you need to use the layout script to calculate the placement, rotation and size of each word:
+    // Constructs a new cloud layout instance.
+    d3.layout.cloud()
+        .size([width, height])
+        .words(topWordToDraw) //data for cloud chart
+        .rotate(function() {
+            //return ~~(Math.random() * 2) * 90; //~~1.5 => 1  (same as Math.floor(1.5))
+            return 0; // don't rotate
+        })
+        .font("Impact")
+        .fontSize(function(d) {
+            return d.size;
+        })
+        .on("end", draw) //call function draw()
+        .start();
+
+    // Finally implement `draw`, which performs the D3 drawing
+    // This function takes the output of 'layout' above and draw the words
+    // Wordcloud features that are THE SAME from one word to the other can be here
+    function draw(words) {
+
+        const fill = d3.scale.category20();
+
+        // append the svg object to the body of the page
+        d3.select(element_id).append("svg") // element_id such as "#cloud"
+            .attr("width", width)
+            .attr("height", height)
+            .append("g")
+            .attr("transform", "translate(" + ~~(width / 2) + "," + ~~(height / 2) + ")")
+            .selectAll("text")
+            .data(words)
+            .enter().append("text")
+            .style("font-size", function(d) {
+                return d.size + "px";
+            })
+            .style("-webkit-touch-callout", "none")
+            .style("-webkit-user-select", "none")
+            .style("-khtml-user-select", "none")
+            .style("-moz-user-select", "none")
+            .style("-ms-user-select", "none")
+            .style("user-select", "none")
+            .style("cursor", "default")
+            .style("font-family", "Impact")
+            .style("fill", function(d, i) {
+                return fill(i);
+            })
+            .attr("text-anchor", "middle")
+            .attr("transform", function(d) {
+                return "translate(" + [d.x, d.y] + ")rotate(" + d.rotate + ")";
+            })
+            .text(function(d) {
+                return d.text;
+            });
+    } //draw
+} //drawCloud()
+
+//** display popular persons
+function show_top_keys(items) {
+    // remove previous display
+    $('#topkeys').empty();
+
+    // paste items we like to display using "li" tag
+    for (var i = 0; i < items.length; i++) {
+        var paste = "<li>" + items[i] + "</li>";
+        $('#topkeys').append(paste);
+    }
+} //function
+
+
+//** draw chart
+// function showChart(chartData) {
+var showChart = function(chartData) {
+
+    var values = chartData.values;
+    var labels = chartData.labels;
+    var category = chartData.category;
+
+    // data for chart
+    var data = {
+        labels: labels,
+        datasets: [{
+            label: category,
+            data: values,
+            backgroundColor: randomColors(values.length),
+            borderColor: randomColors(values.length),
+            borderWidth: 1,
+        }],
+    };
+    // options for chart,  y axis value begins at zero
+    var options = {
+        scales: {
+            yAxes: [{
+                ticks: {
+                    beginAtZero: true
+                }
+            }]
+        },
+    };
+
+    // get chart id from html
+    var ctx1 = document.getElementById("mychart");
+
+    //** new a Chart
+    //chart1 .destroy(); // remove previous chart
+    // condition of removing chart
+    //if (window.chart1)  // if windows.chart1 exists then destroy chart1
+    if (typeof(chart1) != "undefined") {
+        chart1.destroy();
+    }
+
+    // chart1 is a global variable
+    chart1 = new Chart(ctx1, {
+        type: 'bar',
+        data: data,
+        options: options,
+    });
+
+}; //showchart function
+
+//** randomize color
+function randomColors(length) {
+    var pool = [];
+    for (i = 0; i < length; i++) {
+        //pool.push(dynamicColors2());
+        pool.push(dynamicColors2());
+    }
+    return pool;
+}
+
+var dynamicColors2 = function() {
+    return '#' + (Math.random().toString(16) + '0000000').slice(2, 8);
+};
+
+// an alternative way to generate random color
+function dynamicColors() {
+    var r = Math.floor(Math.random() * 255);
+    var g = Math.floor(Math.random() * 255);
+    var b = Math.floor(Math.random() * 255);
+    return "rgba(" + r + "," + g + "," + b + ", 0.5)";
+}
+</script>

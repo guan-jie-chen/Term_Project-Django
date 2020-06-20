@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>PTT文章分析系統</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+</head>
+
+<body>
+    <div class="container">
+        <div class="row">
+            {% include 'navbar.html'%}
+            <div class="col-lg-12">
+                <h1>PTT熱門人物</h1>
+                <p>哪個人物被報導最多次?</p>
+            </div>
+            <!-- column col-lg-6 card -->
+            <div class="col-lg-6 mb-5">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="h6 text-uppercase mb-0">篩選條件(資料週期:資料截止時間的前4周)</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-group row">
+                            <label class="col-sm-3 form-control-label">文章類別</label>
+                            <div class="col-md-9">
+                                <label class="radio-inline"><input type="radio" value="全部" name="cateradio"
+                                        checked>全部</label>
+                                <label class="radio-inline"><input type="radio" value="八卦" name="cateradio">八卦</label>
+                                <label class="radio-inline"><input type="radio" value="棒球" name="cateradio">棒球</label>
+                                <label class="radio-inline"><input type="radio" value="車子" name="cateradio">車子</label>
+                                <label class="radio-inline"><input type="radio" value="手機通訊" name="cateradio">手機通訊</label>
+                                <label class="radio-inline"><input type="radio" value="軟工" name="cateradio">軟工</label>
+                                <label class="radio-inline"><input type="radio" value="NBA" name="cateradio">NBA</label>
+                                <label class="radio-inline"><input type="radio" value="PlayStation" name="cateradio">PlayStation</label>
+                                <label class="radio-inline"><input type="radio" value="LoL" name="cateradio">LoL</label>
+                                <label class="radio-inline"><input type="radio" value="Steam" name="cateradio">Steam</label>
+                                <label class="radio-inline"><input type="radio" value="NSwitch" name="cateradio">NSwitch</label>
+                                <small class="form-text text-muted">文章類別內定值為"全部"文章</small>
+                            </div>
+                        </div>
+                        <!--form group-->
+                        <!-- Number of persons form group -->
+                        <div class="form-group row">
+                            <label class="col-md-3 form-control-label">多少個熱門詞?</label>
+                            <div class="col-md-9">
+                                <label class="radio-inline"><input type="radio" value="5" name="topkradio">5</label>
+                                <label class="radio-inline"><input type="radio" value="10" name="topkradio"
+                                        checked>10</label>
+                                <label class="radio-inline"><input type="radio" value="20" name="topkradio">20</label>
+                                <label class="radio-inline"><input type="radio" value="30" name="topkradio">30</label>
+                                <label class="radio-inline"><input type="radio" value="40" name="topkradio">40</label>
+                                <label class="radio-inline"><input type="radio" value="50" name="topkradio">50</label>
+                                <label class="radio-inline"><input type="radio" value="60" name="topkradio">60</label>
+                                <small class="form-text text-muted">內定值為10</small>
+                            </div>
+                        </div>
+                        <!--form group-->
+                    </div>
+                    <!--card body-->
+                </div>
+                <!--card -->
+            </div><!-- column -->
+            <!-- 繪圖區塊-->
+            <div class="col-lg-6 mb-5">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="h6 text-uppercase mb-0">熱門關鍵字繪圖</h3>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="mychart"></canvas>
+                    </div>
+                </div>
+            </div><!-- column -->
+            <!-- 熱門關鍵字區塊-->
+            <div class="col-lg-6 mb-5">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="h6 text-uppercase mb-0">熱門關鍵字(頻率次數)</h3>
+                    </div>
+                    <div class="card-body">
+                        <ul id="topkeys"></ul>
+                    </div>
+                </div>
+            </div><!-- column -->
+        </div> <!-- row -->
+    </div> <!-- container -->
+</body>
+
+</html>
+<!-- jQuery js-->
+<script src="https://code.jquery.com/jquery-3.1.0.min.js"></script>
+<!-- chartjs js-->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.3/Chart.min.js"></script>
+<!-- Your JavaScript Codes -->
+<script>
+
+    // Show the page with default setting when page is initialized.
+    call_ajax();
+
+    $("input[name='cateradio']").on('change', function () {
+        call_ajax();
+    }); //event function
+
+    $("input[name='topkradio']").on('change', function () {
+        call_ajax();
+    }); //event function
+
+
+    function call_ajax() {
+
+        const cate = $("input[name='cateradio']:checked").val();
+        const topk = $("input[name='topkradio']:checked").val();
+
+        $.ajax({
+            type: "POST", //or GET
+            
+            // your api url: either full path or short path will be ok
+            url: "api_get_topPerson/", //short path
+            
+            //full path
+            //url: "http://127.0.0.1:8000/topperson/api_get_topPerson/",
+            //url: "http://163.18.22.32:8000/topperson/api_get_topPerson/",
+
+            url: "api_get_topPerson/",
+            data: { "news_category": cate, "topk": topk },
+            success: function (received) {
+                chartData = received.chart_data;
+                console.log(chartData);
+                wf_pairs = received.wf_pairs;
+                
+                showChart(chartData);
+                show_top_keys(wf_pairs);
+
+            } //ajax function
+        }); //ajax
+    }; //call_ajax
+
+
+    //--- display popular persons
+    function show_top_keys(items) {
+        // remove previous display
+        $('#topkeys').empty();
+
+        // paste items we like to display using "li" tag
+        for (var i = 0; i < items.length; i++) {
+            var paste = "<li>" + items[i] + "</li>";
+            $('#topkeys').append(paste);
+        }
+    } //function
+
+
+    //--- draw chart
+    var showChart = function (chartData) {
+        var values = chartData.values;
+        var labels = chartData.labels;
+        var category = chartData.category;
+
+        // data for chart
+        var data = {
+            labels: labels,
+            datasets: [{
+                label: category,
+                data: values,
+                backgroundColor: randomColors(values.length),
+                borderColor: randomColors(values.length),
+                borderWidth: 1,
+            }],
+        };
+        // options for chart,  y axis value begins at zero
+        var options = {
+            scales: {
+                yAxes: [{
+                    ticks: {
+                        beginAtZero: true
+                    }
+                }]
+            },
+        };
+
+        // get chart id from html
+        var ctx1 = document.getElementById("mychart");
+
+        //** new a Chart
+        //chart1 .destroy(); // remove previous chart
+        // if condition of removing chart
+        //if (window.chart1)  // if windows.chart1 exists then destroy chart1
+        if (typeof (chart1) != "undefined") {
+            chart1.destroy();
+        }
+
+        chart1 = new Chart(ctx1, {
+            type: 'bar',
+            data: data,
+            options: options,
+        });
+
+    }; //showchart function
+
+    //** randomize color
+    function randomColors(length) {
+        var pool = [];
+        for (i = 0; i < length; i++) {
+            //pool.push(dynamicColors2());
+            pool.push(dynamicColors2());
+        }
+        return pool;
+    }
+
+    var dynamicColors2 = function () {
+        return '#' + (Math.random().toString(16) + '0000000').slice(2, 8);
+    };
+
+    function dynamicColors() {
+        var r = Math.floor(Math.random() * 255);
+        var g = Math.floor(Math.random() * 255);
+        var b = Math.floor(Math.random() * 255);
+        return "rgba(" + r + "," + g + "," + b + ", 0.5)";
+    }
+</script>

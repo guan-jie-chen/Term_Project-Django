@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>PTT文章分析系統</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+</head>
+<body>
+
+
+<div class="container">
+    <div class="row">
+
+        {% include 'navbar.html'%}
+        <div class="col-lg-12">
+            <h1>各類文章最熱門的關鍵詞</h1>
+            <p>熱門度分析:可以了解文章關注那些重要的東東</p>
+        </div>
+
+        <!-- column區塊   col-lg-6  內部是 card -->
+        <div class="col-lg-6 mb-2">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="h6 text-uppercase mb-0">熱門關鍵字瀏覽與繪圖(資料週期:資料截止時間的前4周)</h3>
+                </div>
+
+                <div class="card-body">
+
+                    <!--新聞類別選單 form group-->
+                    <div class="form-group row">
+                        <label class="col-sm-3 form-control-label">文章類別</label>
+                        <div class="col-md-9">
+                            <select id="cat_select" name="news_category" class="form-control">
+                                <!--<option>請選擇</option>-->
+                                <option>全部</option>
+                                <option>八卦</option>
+                                <option>棒球</option>
+                                <option>車子</option>
+                                <option>手機通訊</option>
+                                <option>軟工</option>
+                                <option>NBA</option>
+                                <option>PlayStation</option>
+                                <option>LoL</option>
+                                <option>Steam</option>
+                                <option>NSwitch</option>
+                            </select>
+                            <small class="form-text text-muted">請選擇文章類別
+                            </small>
+                        </div>
+                    </div> <!--form group-->
+
+                    <!--熱門詞多少個?form group-->
+                    <div class="form-group row">
+                        <label class="col-md-3 form-control-label">多少個熱門詞?</label>
+                        <div class="col-md-9">
+                            <input id="topk_keys" name="topk" value="10"
+                                   class="form-control form-control-success">
+                            <small class="form-text text-muted">內定值為10
+                            </small>
+                        </div>
+                    </div><!--form group-->
+
+                    <!--submit按鈕form group-->
+                    <div class="form-group row">
+                        <div class="col-md-9 ml-auto">
+                            <button type="button" id="btn_ok" class="btn btn-primary">查詢</button>
+                        </div>
+                    </div><!--form group-->
+
+                </div> <!--card body-->
+            </div><!--column-->
+        </div><!-- 區塊結束-->
+
+
+        <!-- 繪圖區塊-->
+        <div class="col-lg-6 mb-5">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="h6 text-uppercase mb-0">熱門關鍵字繪圖</h3>
+                </div>
+                <div class="card-body">
+                    <canvas id="mychart"></canvas>
+                </div>
+            </div>
+        </div><!-- 區塊結束-->
+
+
+        <!-- 熱門關鍵字區塊-->
+        <div class="col-lg-6 mb-5">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="h6 text-uppercase mb-0">熱門關鍵字</h3>
+                </div>
+                <div class="card-body">
+                    <ul id="hotkeys"></ul>
+                </div>
+            </div>
+        </div><!-- 區塊結束-->
+
+    </div> <!-- row結束-->
+</div> <!-- container結束-->
+
+</body>
+</html>
+
+<!-- jQuery指令用到的js-->
+<script src="https://code.jquery.com/jquery-3.1.0.min.js"></script>
+<!-- chartjs圖js-->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.3/Chart.min.js"></script>
+
+<!-- 程式碼區 -->
+<script>
+
+    //*新聞類別選單select被選中值有改變時，執行以下事件
+    //$('#cat_select').on('change', call_ajax() );
+    $('#cat_select').on('change', function () {
+        call_ajax();
+    }); //event function
+
+    //**按鈕事件
+    $('#btn_ok').on('click', function () {
+        call_ajax();
+    }); //event function
+
+    // ** draw chart using Ajax 畫圖
+    // There are two ways to define a function:
+    // one is expression, and the other is definition with "hoisting"
+    // function with hoisting:  function call_ajax() {}
+    // normal function expression: var call_ajax = function() {}
+    var call_ajax = function() {
+
+        var cate = $('#cat_select').val();
+        //console.log(cate);
+
+        var topk = $('#topk_keys').val();
+        //console.log(topk);
+
+        $.ajax({
+            type: "GET",
+            url: "api_get_cate_topWord",
+            data: {"news_category": cate, "topk": topk},
+            success: function (received) {
+                //console.log(received);
+                chartData = received.chart_data;
+                wf_pairs = received.wf_pairs;
+                show_hot_keys(wf_pairs);
+                showChart(chartData);
+            } //ajax function
+        }); //ajax
+    }; //call_ajax
+
+    //  to show default top words bar chart when the page is loaded.
+    // invoke call_ajax()  after the function is defined.
+    call_ajax();
+
+    //* 顯示關鍵詞資料函數
+    function show_hot_keys(items) {
+        //先清除前一次的資料
+        $('#hotkeys').empty();
+
+        //將內容加上li標籤附加起來，顯示在顯示區"hotkeys"
+        for (var i = 0; i < items.length; i++) {
+            var paste = "<li>" + items[i] + "</li>";
+            $('#hotkeys').append(paste);
+        }
+    } //function
+
+    //**繪圖函數showchart()
+    var showChart = function (chartData) {
+
+        var values = chartData.values;
+        var labels = chartData.labels;
+        var category = chartData.category;
+
+        //餵給chart的資料
+        var data = {
+            labels: labels,
+            datasets: [{
+                label: category,
+                data: values,
+                backgroundColor: randomColors(values.length),
+                borderColor: randomColors(values.length),
+                borderWidth: 1,
+            }],
+        };
+        //餵給chart的選項  y坐標軸從零開始顯示
+        var options = {
+            scales: {
+                yAxes: [{
+                    ticks: {
+                        beginAtZero: true
+                    }
+                }]
+            },
+        };
+
+        //取得在前面html區域欲顯示的圖代號
+        var ctx1 = document.getElementById("mychart");
+
+        //**產生一個圖物件
+        //chart1 .destroy(); //先清除前一個圖 再繪新圖
+        //先清除前一個圖 再繪新圖 if 有以下兩種寫法皆可
+        // if (window.chart1)  //若存在則為true
+        // if (typeof (barchart) != "undefined")
+        if (window.barchart) {
+            barchart.destroy();
+        }
+
+        barchart = new Chart(ctx1, {
+            type: 'bar',
+            data: data,
+            options: options,
+        });
+
+    }; //show chart function
+
+    //** 產生隨機顏色
+    var randomColors=function (length) {
+        var pool = [];
+        for (i = 0; i < length; i++) {
+            //pool.push(dynamicColors2());
+            pool.push(dynamicColors2());
+        }
+        return pool;
+    };
+
+    var dynamicColors2 = function () {
+        return '#' + (Math.random().toString(16) + '0000000').slice(2, 8);
+    };
+
+    var dynamicColors = function () {
+        var r = Math.floor(Math.random() * 255);
+        var g = Math.floor(Math.random() * 255);
+        var b = Math.floor(Math.random() * 255);
+        return "rgba(" + r + "," + g + "," + b + ", 0.5)";
+    };
+
+</script>

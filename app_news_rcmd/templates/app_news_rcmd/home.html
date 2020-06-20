@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>PTT文章分析系統</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+    <script src="http://code.responsivevoice.org/responsivevoice.js"></script>
+</head>
+
+<body>
+
+    <div class="container">
+        <div class="row">
+
+            {% include 'navbar.html' %}
+
+            <div class="col-lg-12">
+                <h1>PTT文章推薦與查詢系統</h1>
+                <p>展示Doc2vec詞嵌入模型的應用</p>
+            </div>
+
+            <!-- col-lg-6 .. card -->
+            <div class="col-lg-6 mb-2">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="h6 text-uppercase mb-0">最新文章瀏覽(列出數篇)</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-group row">
+                            <label class="col-sm-3 form-control-label">文章類別</label>
+                            <div class="col-md-9 select mb-3">
+                                <select id="cate_select" name="news_category" class="form-control">
+                                    <option>八卦</option>
+                                    <option>棒球</option>
+                                    <option>車子</option>
+                                    <option>手機通訊</option>
+                                    <option>軟工</option>
+                                    <option>NBA</option>
+                                    <option>PlayStation</option>
+                                    <option>LoL</option>
+                                    <option>Steam</option>
+                                    <option>NSwitch</option>
+                                </select>
+                                <small class="form-text text-muted ml-3">請選擇文章類別
+                                </small>
+                            </div>
+                        </div>
+
+                        <ul id="cate_news"></ul>
+
+                    </div>
+                </div>
+            </div><!-- column -->
+
+
+            <!-- column -->
+            <div class="col-lg-6 mb-2">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="h6 text-uppercase mb-0">輸入多個關鍵字，推薦類似文章</h3>
+                    </div>
+                    <div class="card-body">
+
+                        <div class="input-group mb-3">
+                            <input type="text" id="input_keywords" class="form-control" placeholder="輸入多個關鍵字組合(空白分隔)">
+                            <div class="input-group-append">
+                                <button type="button" class="btn btn-success" id="btn_get_sim_news">推薦</button>
+                            </div>
+                        </div>
+                        <!-- 顯示類似新聞多篇-->
+                        <ul id="similar_news"></ul>
+                    </div>
+                </div>
+            </div><!-- column -->
+
+
+            <!-- column col-lg-6 .. card -->
+            <div class="col-lg-8 mb-5">
+                <select id="VoiceSelection" class="input input--dropdown js--animations">
+                <option value="">--Select--</option>
+                <option value="Chinese Female">Chinese Female</option>
+                </select>
+                <input id="tts_btn" type="submit" value="文章朗讀" />
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="h6 text-uppercase mb-0">PTT內容瀏覽</h3>
+                    </div>
+                    <div class="card-body">
+
+                        <!-- 顯示被點選的某一篇新聞詳細內容-->
+                        <ul id="news_content"></ul>
+
+                    </div>
+                </div>
+            </div><!-- column -->
+
+
+            <!-- column col-lg-6 .. card -->
+            <div class="col-lg-4 mb-2">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="h6 text-uppercase mb-0">推薦與這一則文章最相似的3篇文章</h3>
+                    </div>
+                    <div class="card-body">
+
+                        <!-- 顯示被點選的某一篇新聞的相關3篇新聞推薦-->
+                        <ul id="related_news"></ul>
+
+                    </div>
+                </div>
+            </div><!-- column -->
+
+        </div>
+    </div>
+
+</body>
+
+</html>
+
+<script>
+    $(document).ready(function () {
+            var IsEnd = true;;
+            var voicelist = responsiveVoice.getVoices();
+
+            $('#tts_btn').on('click', function () {
+                if (!IsEnd)
+                    responsiveVoice.fallbackMode = false;
+
+                IsEnd = false;
+                responsiveVoice.speak($('#txtText').val(), $('#VoiceSelection').val(),{
+                    onend: function (EndCallback) {
+                        IsEnd = true;
+                    }
+                });
+
+            });
+        });
+    //java script 函數寫法: 
+    //(1)函數宣告:函數會被提升（hoisted）到該 scope 的最頂端，所以可以讓整個 scope 都直接呼叫它。
+    //(2)函數運算式:就必須在函數定義之後，才可以使用。
+    //若是要在某個函數中被呼叫，則函數宣告或是函數運算式，兩者都可以在全scope中被呼叫
+
+    //(1)函數宣告 Function declaration (declare a function)
+    function myfun1() {}
+
+    // (2)函數運算式Function expression
+    // 前面不加var表示是全域函數
+    var myfun2 = function () {};
+
+    // default user keywords
+    $('#input_keywords').val("PS5");
+
+    // show news links info. when this page is loaded
+    show_news_link(); // based on the selected category 
+    show_suggested_news_link(); // based on the user keywords
+
+    // on change event for category selection
+    $('#cate_select').on('change', function () {
+        show_news_link();
+    });
+
+    // on click event for btn_get_sim_news
+    // 使用者輸入關鍵字的推薦按鈕按的驅動事件
+    $('#btn_get_sim_news').on('click', function () {
+        show_suggested_news_link();
+    });
+
+    // function triggered when the news category is changed
+    function show_news_link() {
+
+        const cate = $('#cate_select').val();
+
+        // remove previous "cate_news" by one of the following approaches:
+        // Approach 1: use jQuery statement
+        $('#cate_news').empty();
+
+        // Approach 2: use html statement
+        //var target_div = document.getElementById("cate_news");
+        //target_div.innerHTML = '';
+
+        // Ajax
+        $.ajax({
+            type: "POST",
+            url: "api_cate_news/",
+            data: {
+                "category": cate
+            },
+            success: function (received) {
+
+                // get latest categorical news
+                const items = received['latest_news'];
+
+                let html_div = document.createElement('div');
+
+                // display all of them in tag "cate_news"
+                for (let i = 0; i < items.length; i++) {
+
+                    // prepare html snippet for each news
+                    let html_snippet = `<div class="row">
+
+                        <div class="col-md-8">
+                            <small><a href="{2}" target="_blank" class="read_it" news_id={0} href="#">{1}</a></small>
+                        </div>
+                    </div>
+                    <hr>`;
+                    // insert news data to the html_snippet
+                    html_snippet = html_snippet.format(items[i].id, items[i].title, items[i].link, items[i].photo_link);
+
+                    // paste every html_snippet into html_div
+                    html_div.innerHTML += html_snippet;
+                }
+
+                // append the heml_div to display
+                //$('#cate_news').append(html_div);
+                document.getElementById('cate_news').appendChild(html_div);
+
+                // Remove previous displayed news by clear_news_content()
+                clear_news_content();
+
+            } //success function
+        }); //ajax
+    }
+
+    // Remove the previous displayed news  
+    var clear_news_content = function () {
+        const target = document.getElementById("news_content");
+        const target_rel = document.getElementById("related_news");
+        target.innerHTML = '';
+        target_rel.innerHTML = '';
+    };
+
+    function show_suggested_news_link() {
+        
+        const tokens_input = $('#input_keywords').val();
+        //console.log(tokens_input);
+        $.ajax({
+            type: "POST",
+            url: "api_keywords_similar_news/",
+            data: {
+                "tokens": tokens_input,
+                "csrfmiddlewaretoken": '{{ csrf_token }}',
+
+                // When the POST is used, fronend should pass csrf_token to the server, or the server should be csrf exempt.
+                //CSRF (Cross-site request forgery,跨站請求偽造) is also known as "one click attack" or "session riding"
+
+            },
+            success: function (received) {
+
+                // removed the previous data in tag "similar_news"
+                $('#similar_news').empty();
+
+                const items = received['data'];
+
+                // display all html similar news information
+                // Specify 'read_it' class and new_id for each html similar news
+                for (let i = 0; i < items.length; i++) {
+                    const paste = "<li><a class='read_it' news_id=" + items[i].id + "  href='#'>" + items[i]
+                        .title + " -->相似度:" + items[i].score + "</a></li>";
+                    //console.log(paste);
+                    $('#similar_news').append(paste);
+                }
+                // Remove previous displayed news by clear_news_content()
+                clear_news_content();
+
+            } //success function
+        }); //ajax
+    } //function
+
+
+    // Define the on click function for every news link 
+    // We must use a document event listener, because the read_it tags are dynamically generated. 
+    // 針對整個頁面的監聽事件，對於動態產生的element也能監聽到
+    $(document).on('click', 'a.read_it', function () {
+        //console.log('read this!'); //test if the event is triggered
+
+        // get news_id. 
+        // "this" refer to the read_it html element as the following:
+        // <li><a class='read_it' news_id="cna_xxx"  href='#'>...</a></li>
+        const newsid = $(this).attr('news_id');
+        //console.log(newsid); //news_id
+
+        // change the color of "this" html 
+        $(this).css('background', '#d9f531');
+
+        // show the selected news content by showNews()
+        showNews(newsid);
+    });
+
+
+    // We could not define read_it event in advance. because read_it tag is dynamically generated when this page is loaded.
+    //以下這種寫法沒作用，由於read_it是動態產生的，這個事件無法被觸發!!
+    $('.read_it').click(function () {
+        //alert("this event will not be triggered!");
+    });
+
+
+    // Show the selected news content when the read_it event is triggered
+    var showNews = function (news_id) {
+
+        clear_news_content();
+
+        $.ajax({
+            type: "POST",
+            url: "api_news_content/",
+            data: {
+                news_id: news_id, // query by news_id
+            },
+            success: function (received) {
+
+                const item = received['news_content']; // get news content
+                // const item = received.news_content; // the same
+
+                // the html element to display the new content
+                const display = $('#news_content');
+                //const display = document.getElementById("news_content"); // alternative way
+
+                // insert new line at the end of paragraph
+                html_content = item.content.replace(/(\r\n|\n|\r|。)/gm,"。");
+
+                // display new content
+                display.append("<li>類別:" + item.category + "</li>");
+                display.append("<p>標題:" + item.title + '(' + item.date + ')' + "</p>");
+                display.append("<p><textarea id='txtText' cols='80' rows='10'>" + html_content + "</textarea></p>");
+                display.append("<a  href=" + item.link + " target='_blank'>連結</a>");
+
+
+                // display similar (related) news based on the selected news
+                var items = received['related_news'];
+                var display_rel = document.getElementById("related_news");
+                for (var i = 0; i < items.length; i++) {
+                    display_rel.innerHTML += "<li>" + items[i].category + "</li>";
+                    display_rel.innerHTML += "<p>" + items[i].title + "</p>";
+                    display_rel.innerHTML += "<p>相似度:" + items[i].score + "</p>";
+                    display_rel.innerHTML += "<a  href=" + items[i].link + " target='_blank'>連結</a>";
+                }
+            }
+        }); //ajax
+
+    }; //showNews function
+
+
+    //Customize the String.format()
+    //reference: https://www.cnblogs.com/taoweiji/p/3260883.html
+
+    //"{0}----{1}".format("xx","yy")
+    String.prototype.format = function () {
+        var result = this;
+        if (arguments.length == 0)
+            return null;
+        for (var i = 0; i < arguments.length; i++) {
+            var re = new RegExp('\\{' + (i) + '\\}', 'gm');
+            result = result.replace(re, arguments[i]);
+        }
+        return result;
+    };
+
+    // Another alternative way
+    // let result = String.format("{0}  {1}", "Apple","Pineapple")
+    String.format = function () {
+        if (arguments.length == 0)
+            return null;
+        var str = arguments[0];
+        for (var i = 1; i < arguments.length; i++) {
+            var re = new RegExp('\\{' + (i - 1) + '\\}', 'gm');
+            str = str.replace(re, arguments[i]);
+        }
+        return str;
+    };
+
+</script>

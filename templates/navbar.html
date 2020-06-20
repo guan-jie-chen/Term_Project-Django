@@ -1,0 +1,46 @@
+<style>
+    .navbar-light .navbar-brand {
+    color: #f8f9fa;
+}
+.navbar-light .navbar-nav .nav-link {
+    color: #f8f9fa;
+}
+</style>
+<div class="col-lg-12 mb-2">
+    <nav class="navbar navbar-expand-lg navbar-light" style="background-color: #212529;">
+        <a class="navbar-brand" href="#">PTT分析平台</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+                aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'app_top_keyword:chart_topWord' %}">熱門關鍵詞分析</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'app_top_person:home_topPerson'%}">熱門人物排行分析</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'namespace_top_ner:home' %}">NER熱門分析</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'namespace_user_keyword:home' %}">你的關鍵詞熱門度分析</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'namespace_app_news_rcmd:home' %}">PTT瀏覽與文章推薦</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">全文檢索與關聯新聞分析</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link"
+                       href="#">你的關鍵詞情緒分析</a>
+                </li>
+            </ul>
+
+        </div>
+    </nav>
+</div>
